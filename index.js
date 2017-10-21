@@ -14,7 +14,8 @@ window.addEventListener("mousemove", onMouseMove);
 var state = {
   ball: {
     x: 500,
-    y: 500
+    y: 500,
+    sens: true
   },
   squares: [
     {
@@ -39,8 +40,13 @@ function Ball(position) {
 }
 
 function moveBall() {
-  console.log("move");
-  state.ball.x = state.ball.x + 1;
+  if (state.ball.sens) {
+    state.ball.x = state.ball.x + 1;
+  } else {
+    state.ball.x = state.ball.x - 1;
+  }
+  if (state.squares.some(square => isCollision(square, state.ball)))
+    state.ball.sens = !state.ball.sens;
   window.requestAnimationFrame(moveBall);
   update();
 }
@@ -66,6 +72,12 @@ function onMouseMove(e) {
   ws.write(
     JSON.stringify({ x: e.clientX, y: e.clientY, id: myId, color: color })
   );
+}
+
+function isCollision(sq, ball) {
+  const y = sq.y <= ball.y && sq.y + 250 >= ball.y;
+  const x = sq.x <= ball.x && sq.x + 20 >= ball.x;
+  return y && x;
 }
 
 function websocketHandler() {
