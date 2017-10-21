@@ -35,7 +35,7 @@ function getRandomInt(min, max) {
 }
 
 function Ball(position) {
-  return `<div class="ball" style="top: ${position.y}px; left: ${position.x}px" ></div>`;
+  return `<div class="ball" style="top: ${position.y}px; transform: translateX(${position.x}px)" ></div>`;
 }
 
 function moveBall() {
@@ -45,7 +45,7 @@ function moveBall() {
   update();
 }
 function Square(info, index) {
-  return `<div class="square" id= ${index} style="top: ${info.y}px; left: ${info.x}px; background:${info.color}" ></div>`;
+  return `<div class="square" id= ${index} style="transform: translateY(${info.y}px) translateX(${info.x}px); background:${info.color}" ></div>`;
 }
 
 function render() {
