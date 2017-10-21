@@ -12,6 +12,10 @@ var countMouseMove = 0;
 window.addEventListener("mousemove", onMouseMove);
 
 var state = {
+  ball: {
+    x: 500,
+    y: 500
+  },
   squares: [
     {
       id: myId,
@@ -23,28 +27,41 @@ var state = {
 };
 
 ws.pipe(websocketHandler());
-
+window.requestAnimationFrame(moveBall);
 update();
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+function Ball(position) {
+  return `<div class="ball" style="top: ${position.y}px; left: ${position.x}px" ></div>`;
+}
+
+function moveBall() {
+  console.log("move");
+  state.ball.x = state.ball.x + 1;
+  window.requestAnimationFrame(moveBall);
+  update();
+}
 function Square(info, index) {
   return `<div class="square" id= ${index} style="top: ${info.y}px; left: ${info.x}px; background:${info.color}" ></div>`;
 }
 
+function render() {
+  return `<div>${state.squares.map((sq, index) => Square(sq, index))}
+                 ${Ball(state.ball)}
+            </div>`;
+}
 function update() {
-  console.log(state.squares.map((sq, index) => Square(sq, index)));
-  return html.update(
-    root,
-    `<div>${state.squares.map((sq, index) => Square(sq, index))}</div>`
-  );
+  return html.update(root, render());
 }
 
 function onMouseMove(e) {
   countMouseMove++;
+  console.log("merdier");
   if (countMouseMove < 5) return;
+  console.log("afterif merdier");
   countMouseMove = 0;
   ws.write(
     JSON.stringify({ x: e.clientX, y: e.clientY, id: myId, color: color })
@@ -53,6 +70,7 @@ function onMouseMove(e) {
 
 function websocketHandler() {
   return through(function(buf, enc, next) {
+    console.log(buf.toString());
     var res = JSON.parse(buf.toString()) ? JSON.parse(buf.toString()) : {};
     if (state.squares.some(sq => sq.id === res.id)) {
       state.squares.map(sq => {
