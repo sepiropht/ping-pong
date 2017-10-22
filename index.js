@@ -8,6 +8,7 @@ var color = randomcolor();
 var cuid = require("cuid");
 var myId = cuid();
 var countMouseMove = 0;
+var debounceBallMove = 0;
 
 window.addEventListener("mousemove", onMouseMove);
 
@@ -40,16 +41,31 @@ function Ball(position) {
 }
 
 function moveBall() {
-  if (state.ball.sens) {
-    state.ball.x = state.ball.x + 1;
-  } else {
-    state.ball.x = state.ball.x - 1;
-  }
-  if (state.squares.some(square => isCollision(square, state.ball)))
+  debounceBallMove++;
+  //if (debounceBallMove < 5) return window.requestAnimationFrame(moveBall);
+  debounceBallMove = 0;
+  if (state.squares.some(square => isCollision(square, state.ball))) {
     state.ball.sens = !state.ball.sens;
+  }
+  // console.log(state.squares[0], state.ball);
+  //console.log(state.ball.sens);
+  let newX = 0;
+  if (state.ball.sens) {
+    newX = state.ball.x + 1;
+  } else {
+    newX = state.ball.x - 1;
+  }
+  ws.write(
+    JSON.stringify({
+      x: newX,
+      y: state.ball.y,
+      ball: true,
+      sens: state.ball.sens
+    })
+  );
   window.requestAnimationFrame(moveBall);
-  update();
 }
+
 function Square(info, index) {
   return `<div class="square" id= ${index} style="transform: translateY(${info.y}px) translateX(${info.x}px); background:${info.color}" ></div>`;
 }
@@ -65,12 +81,16 @@ function update() {
 
 function onMouseMove(e) {
   countMouseMove++;
-  console.log("merdier");
   if (countMouseMove < 5) return;
-  console.log("afterif merdier");
   countMouseMove = 0;
   ws.write(
-    JSON.stringify({ x: e.clientX, y: e.clientY, id: myId, color: color })
+    JSON.stringify({
+      x: e.clientX,
+      y: e.clientY,
+      id: myId,
+      color: color,
+      barre: true
+    })
   );
 }
 
@@ -82,18 +102,28 @@ function isCollision(sq, ball) {
 
 function websocketHandler() {
   return through(function(buf, enc, next) {
-    console.log(buf.toString());
-    var res = JSON.parse(buf.toString()) ? JSON.parse(buf.toString()) : {};
+    // console.log(buf.toString());
+    var res;
+    try {
+      res = JSON.parse(buf.toString());
+    } catch (e) {
+      res = {};
+      console.log(e); // error in the above string (in this case, yes)!
+    }
+    if (res.ball) {
+      state.ball = res;
+      console.log(res);
+    }
     if (state.squares.some(sq => sq.id === res.id)) {
       state.squares.map(sq => {
         if (sq.id === res.id) return Object.assign(sq, { x: res.x, y: res.y });
         return sq;
       });
     } else {
-      state.squares.push(res);
+      //state.squares.push(res);
     }
     console.log(state);
-    update();
+    window.requestAnimationFrame(update);
     next();
   });
 }
