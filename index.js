@@ -119,10 +119,10 @@ function websocketHandler() {
         if (sq.id === res.id) return Object.assign(sq, { x: res.x, y: res.y });
         return sq;
       });
-    } else {
-      //state.squares.push(res);
+    } else if (!res.ball) {
+      state.squares.push(res);
     }
-    console.log(state);
+
     window.requestAnimationFrame(update);
     next();
   });
