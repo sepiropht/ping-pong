@@ -3,26 +3,23 @@ var wsock = require("websocket-stream");
 var ecstatic = require("ecstatic");
 var server = http.createServer(ecstatic({ root: `${__dirname}/public` }));
 var ws = wsock.createServer({ server: server }, handleClient);
-var streams = [];
 var count = 0;
 var onend = require("end-of-stream");
+var jsonStream = require("duplex-json-stream");
+var streamSet = require("stream-set");
+var streams = new streamSet();
 
 function handleClient(stream, request) {
-  streams.push(stream);
+  stream = jsonStream(stream);
+  streams.add(stream);
   count++;
   console.log("CONNECTE", count);
   streams.forEach(str => str.pipe(stream));
   stream.on("data", function(o) {
-    console.log("yeah", o.toString());
+    console.log("yeah", o);
     streams.forEach(function(s, index) {
       s.write(o);
     });
-  });
-  onend(stream, { writable: true }, function() {
-    var ix = streams.indexOf(this);
-    console.log("nbr", ix);
-    streams.splice(ix, 1);
-    console.log("DISCONNECTED", streams.length);
   });
 }
 server.listen(5000);

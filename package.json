@@ -11,8 +11,10 @@
   "license": "ISC",
   "dependencies": {
     "cuid": "^1.3.8",
+    "duplex-json-stream": "^1.0.1",
     "end-of-stream": "^1.4.0",
     "randomcolor": "^0.5.3",
+    "stream-set": "^1.1.0",
     "through2": "^2.0.3",
     "watchify": "^3.9.0",
     "websocket-stream": "^5.0.1",

@@ -1,9 +1,9 @@
 var html = require("yo-yo");
 var websocket = require("websocket-stream");
-var ws = websocket("ws://" + window.location.host);
+var jsonStream = require("duplex-json-stream");
+var ws = jsonStream(websocket("ws://" + window.location.host));
 var root = document.body.appendChild(document.createElement("div"));
 var randomcolor = require("randomcolor");
-var through = require("through2");
 var color = randomcolor();
 var cuid = require("cuid");
 var myId = cuid();
@@ -28,7 +28,24 @@ var state = {
   ]
 };
 
-ws.pipe(websocketHandler());
+ws.on("data", res => {
+  console.log(res);
+  if (res.ball) {
+    state.ball = res;
+    console.log(res);
+  }
+  if (state.squares.some(sq => sq.id === res.id)) {
+    state.squares.map(sq => {
+      if (sq.id === res.id) return Object.assign(sq, { x: res.x, y: res.y });
+      return sq;
+    });
+  } else if (!res.ball) {
+    state.squares.push(res);
+  }
+
+  window.requestAnimationFrame(update);
+});
+
 window.requestAnimationFrame(moveBall);
 update();
 
@@ -55,14 +72,12 @@ function moveBall() {
   } else {
     newX = state.ball.x - 1;
   }
-  ws.write(
-    JSON.stringify({
-      x: newX,
-      y: state.ball.y,
-      ball: true,
-      sens: state.ball.sens
-    })
-  );
+  ws.write({
+    x: newX,
+    y: state.ball.y,
+    ball: true,
+    sens: state.ball.sens
+  });
   window.requestAnimationFrame(moveBall);
 }
 
@@ -83,47 +98,17 @@ function onMouseMove(e) {
   countMouseMove++;
   if (countMouseMove < 5) return;
   countMouseMove = 0;
-  ws.write(
-    JSON.stringify({
-      x: e.clientX,
-      y: e.clientY,
-      id: myId,
-      color: color,
-      barre: true
-    })
-  );
+  ws.write({
+    x: e.clientX,
+    y: e.clientY,
+    id: myId,
+    color: color,
+    barre: true
+  });
 }
 
 function isCollision(sq, ball) {
   const y = sq.y <= ball.y && sq.y + 250 >= ball.y;
   const x = sq.x <= ball.x && sq.x + 20 >= ball.x;
   return y && x;
-}
-
-function websocketHandler() {
-  return through(function(buf, enc, next) {
-    // console.log(buf.toString());
-    var res;
-    try {
-      res = JSON.parse(buf.toString());
-    } catch (e) {
-      res = {};
-      console.log(e); // error in the above string (in this case, yes)!
-    }
-    if (res.ball) {
-      state.ball = res;
-      console.log(res);
-    }
-    if (state.squares.some(sq => sq.id === res.id)) {
-      state.squares.map(sq => {
-        if (sq.id === res.id) return Object.assign(sq, { x: res.x, y: res.y });
-        return sq;
-      });
-    } else if (!res.ball) {
-      state.squares.push(res);
-    }
-
-    window.requestAnimationFrame(update);
-    next();
-  });
 }
