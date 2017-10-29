@@ -8,18 +8,28 @@ var onend = require("end-of-stream");
 var jsonStream = require("duplex-json-stream");
 var streamSet = require("stream-set");
 var streams = new streamSet();
+var closesStream = [];
 
 function handleClient(stream, request) {
   stream = jsonStream(stream);
   streams.add(stream);
-  count++;
   console.log("CONNECTE", count);
   streams.forEach(str => str.pipe(stream));
+  onend(
+    stream,
+    function(indexStream) {
+      console.log(indexStream);
+      closesStream.push(indexStream);
+    }.bind(null, count)
+  );
+  count++;
   stream.on("data", function(o) {
     console.log("yeah", o);
+    o.disconnected = closesStream;
     streams.forEach(function(s, index) {
       s.write(o);
     });
+    closesStream = [];
   });
 }
 server.listen(5000);

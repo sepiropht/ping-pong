@@ -29,10 +29,10 @@ var state = {
 };
 
 ws.on("data", res => {
-  console.log(res);
+  //console.log(res);
   if (res.ball) {
     state.ball = res;
-    console.log(res);
+    // console.log(res);
   }
   if (state.squares.some(sq => sq.id === res.id)) {
     state.squares.map(sq => {
@@ -41,6 +41,12 @@ ws.on("data", res => {
     });
   } else if (!res.ball) {
     state.squares.push(res);
+  }
+  if (res.disconnected) {
+    console.log(res);
+    state.squares = state.squares.filter(
+      (sq, i) => res.disconnected.indexOf(i) === -1
+    );
   }
 
   window.requestAnimationFrame(update);
@@ -54,7 +60,7 @@ function getRandomInt(min, max) {
 }
 
 function Ball(position) {
-  return `<div class="ball" style="top: ${position.y}px; transform: translateX(${position.x}px)" ></div>`;
+  return `<div class="ball" style="top: ${position.y}px; left:${position.x}px;: transform: translateX(${position.x}%)" ></div>`;
 }
 
 function moveBall() {
