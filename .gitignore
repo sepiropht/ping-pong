@@ -2,7 +2,7 @@ node_modules/
 .nyc_output/
 coverage/
 dist/
-public/bundle.json
+public/bundle.js
 tmp/
 npm-debug.log*
 .DS_Store

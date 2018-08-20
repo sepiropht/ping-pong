@@ -1,7 +1,7 @@
 var html = require("yo-yo");
 var websocket = require("websocket-stream");
 var jsonStream = require("duplex-json-stream");
-var ws = jsonStream(websocket("ws://" + window.location.host));
+var ws = jsonStream(websocket("wss://" + window.location.host));
 var root = document.body.appendChild(document.createElement("div"));
 var randomcolor = require("randomcolor");
 var color = randomcolor();
