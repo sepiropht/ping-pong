@@ -9,6 +9,7 @@ var jsonStream = require("duplex-json-stream");
 var streamSet = require("stream-set");
 var streams = new streamSet();
 var closesStream = [];
+var port = process.env.port || 5000 
 
 function handleClient(stream, request) {
   stream = jsonStream(stream);
@@ -32,5 +33,5 @@ function handleClient(stream, request) {
     closesStream = [];
   });
 }
-server.listen(5000);
-console.log("yeah sever is up");
+server.listen(port);
+console.log(`yeah sever is up at port ${port}`);
